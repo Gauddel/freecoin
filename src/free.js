@@ -1,8 +1,19 @@
 import EthereumConnexion from './ethereumConnexion';
 
 class Free {
+
+    static EthereumConnexion = undefined;
+    static Provider = undefined;
+
+    static getEthereumConnexion() {
+        if (Free.EthereumConnexion === undefined && Free.Provider !== undefined) {
+            Free.EthereumConnexion = new EthereumConnexion(Free.Provider);
+        }
+        return Free.EthereumConnexion;
+    }
+
     static checkEthereumConnexion() {
-        if (EthereumConnexion.ConnexionInstance === undefined) {
+        if (Free.getEthereumConnexion() === undefined) {
             alert('Create or Find Free Tokens.');
             return false;
         }
@@ -10,7 +21,7 @@ class Free {
     }
 
     static checkAddress(address) {
-        if (EthereumConnexion.ConnexionInstance.Connexion.utils.isAddress(address)) {
+        if (Free.getEthereumConnexion().Connexion.utils.isAddress(address)) {
             return true;
         }
         alert(address + 'is not a address');
@@ -21,7 +32,7 @@ class Free {
             return;
         }
 
-        return EthereumConnexion.GetInstance().Contract.methods.balanceOf(tokensOwner).call();
+        return Free.getEthereumConnexion().Contract.methods.balanceOf(tokensOwner).call();
     }
 
     static allowance(tokensOwner, spender) {
@@ -30,7 +41,52 @@ class Free {
          || !this.checkAddress(spender)) {
             return;
         }
-        return EthereumConnexion.GetInstance().Contract.methods.allowance(tokensOwner, spender).call();
+        return Free.getEthereumConnexion().Contract.methods.allowance(tokensOwner, spender).call();
+    }
+
+    static checkAndGetTokenFromEther(amountOfEther) {
+        Free.getEthereumConnexion().Connexion.eth.getAccounts().then((accounts) => {
+            var mainAccount = accounts[0];
+            Free.getEthereumConnexion().Connexion.eth.getBalance(mainAccount).then((balance) => {
+                if(balance > Free.getEthereumConnexion().Connexion.utils.toWei(amountOfEther, 'ether')) {
+                    return Free.getEthereumConnexion().Contract.methods.getToken(Free.getEthereumConnexion().Connexion.utils.toWei((amountOfEther *2).toString() , 'ether')).
+                    send({ from : mainAccount, value : Free.getEthereumConnexion().Connexion.utils.toWei(amountOfEther, 'ether')}).then((res) => {
+                        console.log(res);
+                    }).catch((err) => {
+                        console.log(err);
+                    })
+                }
+            })
+        })
+    }
+
+    static getTokenFromEther(amountOfEther) {
+        if (!Free.checkEthereumConnexion()) {
+            return;
+        }
+        Free.checkAndGetTokenFromEther(amountOfEther);
+    }
+
+    static checkAndBurnToken(amountOfTokenToBurn) {        
+        Free.getEthereumConnexion().Connexion.eth.getAccounts().then((accounts) => {
+            var mainAccount = accounts[0];
+            Free.getEthereumConnexion().Contract.methods.balanceOf(mainAccount).call().then((balance) => {
+                console.log(balance);
+                console.log(Free.getEthereumConnexion().Connexion.utils.toWei(amountOfTokenToBurn));
+                console.log(balance >= Free.getEthereumConnexion().Connexion.utils.toWei(amountOfTokenToBurn));
+                if(balance >= Free.getEthereumConnexion().Connexion.utils.toWei(amountOfTokenToBurn)) {
+                    Free.getEthereumConnexion().Contract.methods.getBurnToken(Free.getEthereumConnexion().Connexion.utils.toWei(amountOfTokenToBurn)).
+                    send({
+                        from : mainAccount
+                    }).then((res) => {
+                        console.log(res);
+                    }).catch((err) => {
+                        console.log(err);
+                    });
+                }
+            })
+
+        })
     }
 
     static transfer(tokensOwner, to, tokens) {
@@ -44,16 +100,16 @@ class Free {
             from: tokensOwner,
         };
 
-        return EthereumConnexion.GetInstance().Contract.methods.transfer(to, tokens)
+        return Free.getEthereumConnexion().Contract.methods.transfer(to, tokens)
         .estimateGas(optionsGasEstimate)
         .then((gasToPay) => {
             var optionSend = {
                 from: tokensOwner,
                 gasLimit: gasToPay,
-                gasPrice: EthereumConnexion.GetInstance().Connexion.utils.toWei('1', 'gwei'),
+                gasPrice: Free.getEthereumConnexion().Connexion.utils.toWei('1', 'gwei'),
             };
 
-            return EthereumConnexion.GetInstance().Contract.methods.transfer(to, tokens).send(optionSend)
+            return Free.getEthereumConnexion().Contract.methods.transfer(to, tokens).send(optionSend)
             .then((res) => {
                 console.log(res);
             })
@@ -77,16 +133,16 @@ class Free {
             from: tokensOwner,
         };
 
-        return EthereumConnexion.GetInstance().Contract.methods.approve(spender, tokens)
+        return Free.getEthereumConnexion().Contract.methods.approve(spender, tokens)
         .estimateGas(optionsGasEstimate)
         .then((gasToPay) => {
             var optionSend = {
                 from: tokensOwner,
                 gasLimit: gasToPay,
-                gasPrice: EthereumConnexion.GetInstance().Connexion.utils.toWei('1', 'gwei'),
+                gasPrice: Free.getEthereumConnexion().Connexion.utils.toWei('1', 'gwei'),
             };
 
-            return EthereumConnexion.GetInstance().Contract.methods.approve(spender, tokens).send(optionSend)
+            return Free.getEthereumConnexion().Contract.methods.approve(spender, tokens).send(optionSend)
             .then((res) => {
                 console.log(res);
             })
@@ -110,16 +166,16 @@ class Free {
             from: spender,
         };
 
-        return EthereumConnexion.GetInstance().Contract.methods.transferFrom(tokensOwner, tokens)
+        return Free.getEthereumConnexion().Contract.methods.transferFrom(tokensOwner, tokens)
         .estimateGas(optionsGasEstimate)
         .then((gasToPay) => {
             var optionSend = {
                 from: spender,
                 gasLimit: gasToPay,
-                gasPrice: EthereumConnexion.GetInstance().Connexion.utils.toWei('1', 'gwei'),
+                gasPrice: Free.getEthereumConnexion().Connexion.utils.toWei('1', 'gwei'),
             };
 
-            return EthereumConnexion.GetInstance().Contract.methods.transferFrom(tokensOwner, tokens).send(optionSend)
+            return Free.getEthereumConnexion().Contract.methods.transferFrom(tokensOwner, tokens).send(optionSend)
             .then((res) => {
                 console.log(res);
             })

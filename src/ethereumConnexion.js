@@ -1,85 +1,28 @@
 import Web3 from 'web3';
-import truffle from 'truffle-contract';
-
-var file = require('./Free.json');
 
 class EthereumConnexion {
+
+    abi = [{"inputs": [],"stateMutability": "nonpayable","type": "constructor"},{"anonymous": false,"inputs": [{"indexed": true,"internalType": "address","name": "owner","type": "address"},{"indexed": true,"internalType": "address","name": "spender","type": "address"},{"indexed": false,"internalType": "uint256","name": "value","type": "uint256"}],"name": "Approval","type": "event"},{"anonymous": false,"inputs": [{"indexed": true,"internalType": "address","name": "from","type": "address"},{"indexed": true,"internalType": "address","name": "to","type": "address"},{"indexed": false,"internalType": "uint256","name": "value","type": "uint256"}],"name": "Transfer","type": "event"},{"inputs": [{"internalType": "address","name": "owner","type": "address"},{"internalType": "address","name": "spender","type": "address"}],"name": "allowance","outputs": [{"internalType": "uint256","name": "","type": "uint256"}],"stateMutability": "view","type": "function"},{"inputs": [{"internalType": "address","name": "spender","type": "address"},{"internalType": "uint256","name": "amount","type": "uint256"}],"name": "approve","outputs": [{"internalType": "bool","name": "","type": "bool"}],"stateMutability": "nonpayable","type": "function"},{"inputs": [{"internalType": "address","name": "account","type": "address"}],"name": "balanceOf","outputs": [{"internalType": "uint256","name": "","type": "uint256"}],"stateMutability": "view","type": "function"},{"inputs": [],"name": "decimals","outputs": [{"internalType": "uint8","name": "","type": "uint8"}],"stateMutability": "view","type": "function"},{"inputs": [{"internalType": "address","name": "spender","type": "address"},{"internalType": "uint256","name": "subtractedValue","type": "uint256"}],"name": "decreaseAllowance","outputs": [{"internalType": "bool","name": "","type": "bool"}],"stateMutability": "nonpayable","type": "function"},{"inputs": [{"internalType": "uint256","name": "amountOfTokenWantedToBurn","type": "uint256"}],"name": "getBurnToken","outputs": [{"internalType": "bool","name": "","type": "bool"}],"stateMutability": "nonpayable","type": "function"},{"inputs": [{"internalType": "uint256","name": "amountOfTokenWanted","type": "uint256"}],"name": "getToken","outputs": [{"internalType": "bool","name": "","type": "bool"}],"stateMutability": "payable","type": "function"},{"inputs": [{"internalType": "address","name": "spender","type": "address"},{"internalType": "uint256","name": "addedValue","type": "uint256"}],"name": "increaseAllowance","outputs": [{"internalType": "bool","name": "","type": "bool"}],"stateMutability": "nonpayable","type": "function"},{"inputs": [],"name": "name","outputs": [{"internalType": "string","name": "","type": "string"}],"stateMutability": "view","type": "function"},{"inputs": [],"name": "symbol","outputs": [{"internalType": "string","name": "","type": "string"}],"stateMutability": "view","type": "function"},{"inputs": [],"name": "totalSupply","outputs": [{"internalType": "uint256","name": "","type": "uint256"}],"stateMutability": "view","type": "function"},{"inputs": [{"internalType": "address","name": "recipient","type": "address"},{"internalType": "uint256","name": "amount","type": "uint256"}],"name": "transfer","outputs": [{"internalType": "bool","name": "","type": "bool"}],"stateMutability": "nonpayable","type": "function"},{"inputs": [{"internalType": "address","name": "sender","type": "address"},{"internalType": "address","name": "recipient","type": "address"},{"internalType": "uint256","name": "amount","type": "uint256"}],"name": "transferFrom","outputs": [{"internalType": "bool","name": "","type": "bool"}],"stateMutability": "nonpayable","type": "function"}];
+    address = '0xE80Ca3bD01B342860cBEb2b872D6E3d39b55936C';
+
     Connexion = undefined;
     Contract = undefined;
     JsonInterface = undefined;
 
     static ConnexionInstance = undefined;
 
-    static CreateInstanceByDeploying(clientAddress, provider) {
-        EthereumConnexion.CreateInstance(provider);
-        EthereumConnexion.ConnexionInstance.deployContract(clientAddress);
+    constructor(provider) {
+        this.getContract(provider);
     }
 
-    static CreateInstanceByGetting(provider, clientAddress, address) {
-        EthereumConnexion.CreateInstance(provider);
-        EthereumConnexion.ConnexionInstance.getContract(clientAddress, address);
-    }
-
-    static CreateInstance(provider) {
-        if (EthereumConnexion.ConnexionInstance !== undefined) {
-            return;
-        }
-
-        EthereumConnexion.ConnexionInstance = new EthereumConnexion();
-        EthereumConnexion.ConnexionInstance.connexion(provider);
-    }
-
-    static GetInstance() {
-        return EthereumConnexion.ConnexionInstance;
-    }
-
-    updateContract(contract) {
-        this.Contract = contract;
-        console.log(contract);
+    getContract(provider) {
+        this.connexion(provider);
+        this.Contract = new this.Connexion.eth.Contract(this.abi, this.address);
     }
 
     connexion(provider) {
-        // eslint-disable-next-line
         console.log(provider);
         this.Connexion = new Web3(provider);
-        this.JsonInterface = truffle(file);
-    }
-
-    checkAddress(address) {
-        if (this.Connexion.utils.isAddress(address))
-        {
-            return true;
-        }
-
-        alert(address + 'is not a ethereum address');
-        return false;
-    }
-
-    getContract(clientAddress, address) {
-        if (this.checkAddress(clientAddress) || !this.checkAddress(address))
-
-        var options = {
-            from: clientAddress
-        }
-
-        EthereumConnexion.GetInstance().Contract = new (EthereumConnexion.GetInstance().Connexion.eth)
-         .Contract(EthereumConnexion.GetInstance().JsonInterface.abi, address, options);
-    }
-
-    deployContract(clientAddress) {
-        var contractAccount = EthereumConnexion.GetInstance().Connexion.eth.accounts.create();
-        this.getContract(clientAddress, contractAccount.address);
-
-        var options = {
-            from: clientAddress
-        }
-
-        var optionsDeploy = {
-            data: EthereumConnexion.GetInstance().JsonInterface.bytecode,
-        };
-
-        EthereumConnexion.GetInstance().Contract.deploy(optionsDeploy).send(options).then(
-            (res) => EthereumConnexion.GetInstance().updateContract(res));
     }
 }
 
